@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>scripts.js - Documentación</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Inicio</a></h2><h3>Variables globales</h3><ul><li><a href="global.html#KeyDown">KeyDown</a></li><li><a href="global.html#KeyUp">KeyUp</a></li><li><a href="global.html#Sensores">Sensores</a></li><li><a href="global.html#Tira_actual">Tira_actual</a></li><li><a href="global.html#Tiras">Tiras</a></li><li><a href="global.html#accion">accion</a></li><li><a href="global.html#accionParo">accionParo</a></li><li><a href="global.html#ad">ad</a></li><li><a href="global.html#at">at</a></li><li><a href="global.html#changevel">changevel</a></li><li><a href="global.html#clave">clave</a></li><li><a href="global.html#client">client</a></li><li><a href="global.html#de">de</a></li><li><a href="global.html#deteccionclick">deteccionclick</a></li><li><a href="global.html#espera">espera</a></li><li><a href="global.html#evitarSeleccion">evitarSeleccion</a></li><li><a href="global.html#inicio">inicio</a></li><li><a href="global.html#iz">iz</a></li><li><a href="global.html#onConnect">onConnect</a></li><li><a href="global.html#pa">pa</a></li><li><a href="global.html#parobtn">parobtn</a></li><li><a href="global.html#presionado">presionado</a></li><li><a href="global.html#puertocam">puertocam</a></li><li><a href="global.html#sendCommand">sendCommand</a></li><li><a href="global.html#sendMessage">sendMessage</a></li><li><a href="global.html#sendTira">sendTira</a></li><li><a href="global.html#t1">t1</a></li><li><a href="global.html#t2">t2</a></li><li><a href="global.html#tA">tA</a></li><li><a href="global.html#tAT">tAT</a></li><li><a href="global.html#tD">tD</a></li><li><a href="global.html#tI">tI</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">scripts.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/** 
+ * Cliente generado con la conexión a MQTT y el puerto definido.
+ * @type {any}
+ * */
+const client = new Paho.MQTT.Client("broker.emqx.io", Number(8083), "web_id");
+
+/** 
+ * Elemento del botón hacia adelante.
+ * @type {HTMLElement}
+*/
+const ad = document.getElementById('adelante');
+
+/** 
+ * Elemento del botón hacia atras.
+ * @type {HTMLElement}
+*/
+const at = document.getElementById('atras');
+
+/** 
+ * Elemento del botón hacia la derecha.
+ * @type {HTMLElement}
+*/
+const de = document.getElementById('derecha');
+
+/** 
+ * Elemento del botón hacia la izquierda.
+ * @type {HTMLElement}
+*/
+const iz = document.getElementById('izquierda');
+
+/** 
+ * Elemento del botón de conexión / desconexión.
+ * @type {HTMLElement}
+*/
+const pa = document.getElementById('BtnParo');
+
+/** 
+ * Bandera encargada de estar haciendo el ciclo de movimiento en las teclas físicas.
+ * @type {boolean}
+*/
+var t1;
+
+/** 
+ * Bandera encargada de estar haciendo el ciclo de movimiento en los botones de la interfaz.
+ * @type {boolean}
+*/
+var t2;
+
+/**
+ * Bandera que indica si se esta moviendo hacia delante el prototipo.
+ * @type {boolean}
+ */
+var tA = false;
+
+/**
+ * Bandera que indica si se esta moviendo hacia atras el prototipo.
+ * @type {boolean}
+ */
+var tAT = false;
+
+/**
+ * Bandera que indica si se esta moviendo hacia la derecha el prototipo.
+ * @type {boolean}
+ */
+var tD = false;
+
+/**
+ * Bandera que indica si se esta moviendo hacia la izquierda el prototipo.
+ * @type {boolean}
+ */
+var tI = false;
+
+/**
+ * Bandera que indica si otra accion ya a sido presionada.
+ * @type {int}
+ */
+var presionado = 0;
+
+/**
+ * Bandera que indica que botón de paro esta encendido.
+ * @type {int}
+ */
+var parobtn = 0;
+
+/**
+ * Dirección ip de la cámara.
+ * @type {string}
+ */
+var puertocam = "";
+
+/**
+ * Lista de los valores recibidos por el canal sensors.
+ * @type {Array&lt;Number | String>}
+ */
+let Sensores = [0, 0, 0, 0, 0]; //Lidar1, Lidar2, Bateria, Paro, Peso
+
+/**
+ * Lista del valor de tira que tiene cada sensor
+ * @type {Array&lt;int>}
+ */
+let Tiras = [0, 0, 0, 0, 0];
+
+/**
+ * Bandera que permite no repetir el envio de la tira led.
+ * @type {int}
+ */
+let Tira_actual = 0;
+
+/**
+ * Bandera que tomara el valor de la clave que envie el esp32 y luego comparara.
+ * @type {int}
+ */
+let inicio = 10;
+
+/**
+ * Bandera que se toma como clave y se envia al esp32 para luego ser comparada.
+ * @type {int}
+ */
+let clave = 0;
+
+/**
+ * Bandera que funciona como bandera para verificar que la conexión con el esp32 fue correcta.
+ * @type {int}
+ */
+let espera = 0;
+
+/** 
+ * Bandera que funciona como bandera para evitar el envio de varios movimientos rápidos al esp32.
+ * @type {int}
+*/
+let accion = 0;
+
+
+// Manejo de eventos para teclado
+document.addEventListener("keydown", KeyDown);
+document.addEventListener("keyup", KeyUp);
+
+// Función que se realizara al estar conectado el MQTT
+client.connect({ onSuccess: onConnect });
+
+/**
+ * Establece la subscrición con los temas necesarios del MQTT y procesa los datos recibidos de los mismos temas.
+ * @returns {void}
+ */
+function onConnect() {
+  //Temas a los que se subscriben.
+  client.subscribe("sensors");
+  client.subscribe("connected");
+  client.subscribe("stream");
+
+
+  client.onMessageArrived = function (message) {
+    // Guarda el nombre del tela del que proviene el mensaje. 
+    var puerto = message.destinationName;
+    //Comienza a preguntar de que tema es y realizar la acción.
+    if (puerto === "sensors") {
+      //Se pregunta si en verdad se conecto la interfaz al esp32.
+      if (inicio === clave){
+        //Dependiendo de que sensor sea realiza diversas acciones.
+        switch (message.payloadString.substring(0, 3)) {
+          //Caso del sensor delantero.
+          case "li1":
+            Sensores[0] = parseInt(message.payloadString.substring(3), 10);
+            if (Sensores[0] &lt; 200) {
+              Tiras[0] = 2;
+              sendTira();
+              sendMessage("2Peligro adelante!");
+              sendCommand('ALTO')
+            } else if (Sensores[0] &lt; 300) {
+              Tiras[0] = 1;
+              
+              sendTira();
+              sendMessage("Advertencia adelante!");
+            } else {
+              Tiras[0] = 0;
+              sendTira();
+              sendMessage("0Conectado");
+            }
+            break;
+          //Caso del sensor trasero.
+          case "li2":
+            Sensores[1] = parseInt(message.payloadString.substring(3), 10);
+            if (Sensores[1] &lt; 200) {
+              Tiras[1] = 2;
+              sendTira();
+              sendMessage("2Peligro atras!");
+              sendCommand('ALTO')
+            } else if (Sensores[1] &lt; 300) {
+              Tiras[1] = 1;
+              sendTira();
+              sendMessage("1Advertencia atras!");
+            } else {
+              Tiras[1] = 0;
+              sendTira();
+              sendMessage("0Conectado");
+            }
+            break;
+          //Caso de la batería.
+          case "bat":
+            Sensores[2] = parseInt(message.payloadString.substring(3), 10);
+            let container = document.getElementById('energy');
+            if (Sensores[2] &lt;= 15) {
+              Tiras[2] = 2;
+              sendTira();
+              sendMessage("2Bateria menos del 15%");
+              container.style.setProperty('--bg-pseudo', '#C70000')
+              container.style.setProperty('--height', '0%')
+              sendCommand('ALTO')
+            } else if (Sensores[2] &lt;= 30) {
+              Tiras[2] = 1;
+              container.style.setProperty('--bg-pseudo', '#C70000')
+              container.style.setProperty('--height', '20%')
+              sendTira();
+              sendMessage("1Bateria menos del 30%");
+            } else if (Sensores[2] &lt;= 45) {
+              Tiras[2] = 0;
+              container.style.setProperty('--bg-pseudo', '#DBDB08')
+              container.style.setProperty('--height', '40%')
+              sendTira();
+              sendMessage("0Conectado");
+            } else if (Sensores[2] &lt;= 60) {
+              Tiras[2] = 0;
+              container.style.setProperty('--bg-pseudo', '#A1DB08')
+              container.style.setProperty('--height', '60%')
+              sendTira();
+              sendMessage("0Conectado");
+            } else if (Sensores[2] &lt;= 78) {
+              Tiras[2] = 0;
+              container.style.setProperty('--bg-pseudo', '#78DB08')
+              container.style.setProperty('--height', '80%')
+              sendTira();
+              sendMessage("0Conectado");
+            } else {
+              Tiras[2] = 0;
+              container.style.setProperty('--bg-pseudo', '#2FB61F')
+              container.style.setProperty('--height', '100%')
+              sendTira();
+              sendMessage("0Conectado");
+            }
+            break;
+          //Caso del botón de paro.
+          case "par":
+            Sensores[3] = parseInt(message.payloadString.substring(3), 10);
+            if (Sensores[3] === 2) {
+              Tiras[3] = 2;
+              sendTira();
+              sendMessage();
+              sendCommand('ALTO')
+            } else if (Sensores[3] === 0) {
+              if(parobtn === 0){
+                Tiras[3] = 0;
+                sendTira();
+                sendMessage("0Conectado");
+                sendCommand('ALTO')
+              }else {
+                Tiras[3] = 0;
+                Sensores[3] = 1;
+                sendMessage();
+              }
+            } else {
+            }
+            break;
+          //Caso del peso percibido.
+          case "pes":
+            console.log(message.payloadString.substring(3));
+            Sensores[4] = parseInt(message.payloadString.substring(3), 10);
+            if (Sensores[4] > 35) {
+              Tiras[4] = 2;
+              sendTira();
+            } else if (Sensores[4] >= 30) {
+              Tiras[4] = 1;
+              sendTira();
+            } else {
+              Tiras[4] = 0;
+              sendTira();
+            }
+            break;
+          default:
+            break;
+        }
+      }
+    //Se lee si se llego un mensaje de conectado del esp32.
+    } else if(puerto === "connected"){
+      inicio = parseInt(message.payloadString, 10);
+      //Si la clave coincide con la que se mando al esp32 se conecta.
+      if(inicio === clave){
+        sendMessage("0Conectado");
+        sendTira();
+      }else{
+      }
+    //Se recibe la dirección ip de la cámara.
+    } else if(puerto === "stream"){
+      if (inicio === clave){
+      //Se actualiza la imagen a la nueva ip de la cámara.
+      var camara = document.getElementById('imageDisplay');
+      puertocam = ("http://" + message.payloadString);
+      camara.src = puertocam;
+      }
+    }
+  }
+  //Se pregunta si esta conectado o no lo que es el esp32 a la interfaz.
+  if (client.isConnected()) {
+    sendMessage("4Presione boton de encendido");
+  } else {
+    sendMessage("4MQTT desconectado");
+  }
+}
+
+/**
+ * Envia el color de la tira, dando prioridad a las que tienen el número más alto.
+ * @returns {void}
+ */
+function sendTira() {
+  if (client.isConnected()) { // Verificar si el cliente MQTT está conectado.
+    let color = Math.max(...Tiras);
+    //Dependiendo del nivel de color de todos los sensores se manda una tonalidad.
+    if(color !== Tira_actual){ //Se compara si ya se envio esta tira por lo que no se vuelve a mandar.
+      if (color === 0) {
+        const message = new Paho.MQTT.Message("V");
+        message.destinationName = "tira";
+        client.send(message);
+      } else if (color === 1) {
+        const message = new Paho.MQTT.Message("A");
+        message.destinationName = "tira";
+        client.send(message);
+      } else if (color === 2) {
+        const message = new Paho.MQTT.Message("R");
+        message.destinationName = "tira";
+        client.send(message);
+      }
+    }
+    //Establece la tira que ya se mando.
+    Tira_actual = color;
+  } else {
+  }
+}
+
+/**
+ * Envia un comando de movimiento al prototipo.
+ * @param {String} command Dirección del movimiento
+ * @returns {void}
+ */
+function sendCommand(command) {
+  if(inicio === clave){
+    let peligro = Math.max(...Tiras);
+    //Dependiendo si no hay nada como nivel de peligro alto se sigue mandando las direcciones.
+    if (Sensores[3] === 0) {
+      if (peligro !== 2){
+        //Envia el mensaje de movimiento.
+        if (client.isConnected()) { // Verificar si el cliente MQTT está conectado
+          const message = new Paho.MQTT.Message(command);
+          message.destinationName = "move";
+          client.send(message);
+        } else {
+        }
+      //En caso de que algo este detectando advertencia se envia un alto en cualquiera de los casos.
+      } else if (peligro === 2){
+        if (client.isConnected()) { // Verificar si el cliente MQTT está conectado
+          const message = new Paho.MQTT.Message("ALTO");
+          message.destinationName = "move";
+          client.send(message);
+        } else {
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Envia un mensaje que se mostrara en la interfaz.
+ * @param {String} command Mensaje que se mostrara en la pantalla y el color que tomara.
+ * @returns {void}
+ */
+function sendMessage(command) {
+  var h2mesanje = document.getElementById("miH2");
+  let prioridad = Math.max(...Tiras);
+  //Dependiendo de como este la situación de los sensores se establece el mensaje y el color
+  if (Sensores[3] === 0) {
+    if (prioridad === 2) {
+      if (parseInt(command.toString()[0]) === 2) {
+        h2mesanje.style.color = "rgb(255, 0, 0)";
+        h2mesanje.textContent = command.slice(1);
+      }
+    } else if (prioridad === 1) {
+      if (parseInt(command.toString()[0]) === 1) {
+        h2mesanje.style.color = "rgb(255, 213, 0)";
+        h2mesanje.textContent = command.slice(1);
+      }
+    } else {
+        if (parseInt(command.toString()[0]) === 0) {
+          h2mesanje.style.color = "rgb(89, 217, 44)";
+          h2mesanje.textContent = command.slice(1);
+        } else if (parseInt(command.toString()[0]) === 4) {
+          h2mesanje.style.color = "rgb(255, 255, 255)";
+          h2mesanje.textContent = command.slice(1);
+        } else if (parseInt(command.toString()[0]) === 1) {
+          h2mesanje.style.color = "rgb(255, 0, 0)";
+          h2mesanje.textContent = command.slice(1);
+        } 
+    }
+  //Aqui son los casos de paros.
+  } else if (Sensores[3] === 1) {
+    h2mesanje.style.color = "rgb(255, 0, 0)";
+    h2mesanje.textContent = "Paro interfaz";
+  } else if (Sensores[3] === 2) {
+    h2mesanje.style.color = "rgb(255, 0, 0)";
+    h2mesanje.textContent = "Paro manual";
+  }
+}
+
+/**
+ * Hace el cabio a la bandera para enviar movimiento.
+ * @returns {void}
+ */
+function deteccionclick(){
+  accion = 0;
+}
+
+/** 
+ * Al presionar por primera vez se intenta conectar con el esp32, al presionar la segunda vez se desconecta o cancela la conexión.
+ * @returns {void}
+*/
+pa.addEventListener('click', function () {
+  if (inicio === 10){
+    // Generar un número aleatorio entre 0 (inclusive) y 1 (exclusive)
+    if(espera === 0){
+      let numeroAleatorio = Math.random();
+      // Generar un número aleatorio en un rango específico
+      let rangoInicio = 1;
+      let rangoFin = 1000;
+      let numeroEnRango = Math.floor(Math.random() * (rangoFin - rangoInicio + 1)) + rangoInicio;
+      clave = numeroEnRango.toString();
+      const message = new Paho.MQTT.Message(clave);
+      //Se envia la la clave para esperar a que se reenvie y asi operar.
+      message.destinationName = "connect";
+      client.send(message);
+      clave = parseInt(clave);
+      sendMessage("4Conectando al prototipo, espere");
+      espera = 1;
+    } else{
+      sendMessage("1Conexion cancelada, reinicie")
+      espera = 0;
+      clave = 0;
+    }
+    //Este es el caso en que ya se este conectado y se desea desconectar.
+  } else if (inicio === clave){
+    Sensores[3] = 0;
+    sendMessage("4Desconectado, reinicie")
+    clave = 0;
+    inicio = 10;
+    espera = 0;
+  }
+});
+
+/**
+ * Activa el sistema de paro de la interfaz.
+ * @returns {void}
+ */
+function accionParo(){
+  //Establece las acciones de paro y se envia el mensaje a la interfaz.
+  if(inicio === clave){
+    if (Sensores[3] === 0) {
+      Sensores[3] = 1;
+      parobtn = 1;
+      Tiras[3] = 2;
+      sendMessage();
+      sendTira();
+    } else if (Sensores[3] === 1) {
+      Sensores[3] = 0;
+      parobtn = 0;
+      Tiras[3] = 0;
+      sendMessage("0Conectado");
+      sendTira();
+    } else {
+      sendMessage();
+    }
+  }
+}
+
+/**
+ * Hace que no se pueda seleccionar elementos en la interfaz.
+ * @returns {void}
+ */
+function evitarSeleccion() {
+  // Evitar la selección de texto cuando se hace clic en el h2
+  window.getSelection().removeAllRanges();
+}
+
+/**
+ * Detecta la acción de teclas y envia el movimiento.
+ * @param {event} event Evento de pulsar el teclado.
+ * @returns {void}
+ */
+function KeyDown(event) {
+  event.preventDefault();
+  if (event.key == "W" || event.key == "w" || event.key == "ArrowUp") {
+    if (presionado == 0) {
+      if (!tA) { // Verifica si la acción ya está en curso
+        if (accion === 0){
+          tA = true;
+          presionado = 1;
+          clearInterval(t1);
+          t1 = setInterval(sendCommand('ADELANTE'), 100,); // Ejecuta cada 100 ms
+          accion = 1;
+          setTimeout(deteccionclick, 1200);
+        }
+      }
+    }
+  }
+  if (event.key == "S" || event.key == "s" || event.key == "ArrowDown") {
+    if (presionado == 0) {
+      if (!tAT) { // Verifica si la acción ya está en curso
+        if (accion === 0){
+          tAT = true;
+          presionado = 2;
+          clearInterval(t1);
+          t1 = setInterval(sendCommand('ATRAS'), 100); // Ejecuta cada 100 ms
+          accion = 1;
+          setTimeout(deteccionclick, 1200);
+        }
+      }
+    }
+  }
+  if (event.key == "D" || event.key == "d" || event.key == "ArrowRight") {
+    if (presionado == 0) {
+      if (!tD) { // Verifica si la acción ya está en curso
+        if (accion === 0){
+          tD = true;
+          presionado = 3;
+          clearInterval(t1);
+          t1 = setInterval(sendCommand('DERECHA'), 100); // Ejecuta cada 100 ms
+          accion = 1;
+          setTimeout(deteccionclick, 1200);
+        }
+      }
+    }
+  }
+  if (event.key == "A" || event.key == "a" || event.key == "ArrowLeft") {
+    if (presionado == 0) {
+      if (!tI) { // Verifica si la acción ya está en curso
+        if (accion === 0){
+          tI = true;
+          presionado = 4;
+          clearInterval(t1);
+          t1 = setInterval(sendCommand('IZQUIERDA'), 100); // Ejecuta cada 100 ms
+          accion = 1;
+          setTimeout(deteccionclick, 1200);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Detecta cuando se deja de oprimir una tecla para hacer el paro.
+ * @param {event} event Evento de dejar de oprimir el teclado.
+ * @returns {void}
+ */
+function KeyUp(event) {
+  if (event.key == "W" || event.key == "w" || event.key == "ArrowUp") {
+    if (presionado == 1) {
+      tA = false;
+      clearInterval(t1);
+      presionado = 0;
+      t1 = setInterval(sendCommand('ALTO'), 100);
+    }
+  }
+  if (event.key == "S" || event.key == "s" || event.key == "ArrowDown") {
+    if (presionado == 2) {
+      tAT = false;
+      clearInterval(t1);
+      presionado = 0;
+      t1 = setInterval(sendCommand('ALTO'), 100);
+    }
+  }
+  if (event.key == "D" || event.key == "d" || event.key == "ArrowRight") {
+    if (presionado == 3) {
+      tD = false;
+      presionado = 0;
+      clearInterval(t1);
+      t1 = setInterval(sendCommand('ALTO'), 100);
+    }
+  }
+  if (event.key == "A" || event.key == "a" || event.key == "ArrowLeft") {
+    if (presionado == 4) {
+      tI = false;
+      clearInterval(t1);
+      presionado = 0;
+      t1 = setInterval(sendCommand('ALTO'), 100);
+    }
+  }
+}
+
+/** 
+ * Evento de presionar el botón de manera táctil del movimiento hacia adelante.
+ * @returns {void}
+*/
+ad.addEventListener('touchstart', function (event) {
+  event.preventDefault();
+  if (presionado == 0) {
+    if (!tA) { // Verifica si la acción ya está en curso
+      if (accion === 0){
+        tA = true;
+        clearInterval(t2);
+        presionado = 5;
+        t2 = setInterval(sendCommand('ADELANTE'), 100); // Ejecuta cada 100 ms
+        accion = 1;
+        setTimeout(deteccionclick, 1200);
+      }
+    }
+  }
+});
+
+/** 
+ * Evento de dejar de presionar el botón de manera táctil del movimiento hacia adelante.
+ * @returns {void}
+*/
+ad.addEventListener('touchend', function () {
+  if (presionado == 5) {
+    tA = false;
+    clearInterval(t2);
+    presionado = 0;
+    t2 = setInterval(sendCommand('ALTO'), 100);
+  }
+});
+
+/** 
+ * Evento de presionar el botón de movimiento hacia adelante.
+ * @returns {void}
+*/
+ad.addEventListener('mousedown', function (event) {
+  event.preventDefault();
+  if (!tA) { // Verifica si la acción ya está en curso
+    if (accion === 0){
+      tA = true;
+      clearInterval(t2);
+      t2 = setInterval(sendCommand('ADELANTE'), 100); // Ejecuta cada 100 ms
+      accion = 1;
+      setTimeout(deteccionclick, 1200);
+    }
+  }
+});
+
+/** 
+ * Evento de dejar de presionar el botón de movimiento hacia adelante.
+ * @returns {void}
+*/
+ad.addEventListener('mouseup', function () {
+  tA = false;
+  clearInterval(t2);
+  t2 = setInterval(sendCommand('ALTO'), 100); // Ejecuta cada 100 ms
+});
+
+
+/** 
+ * Evento de presionar el botón de manera táctil del movimiento hacia atras.
+ * @returns {void}
+*/at.addEventListener('touchstart', function (event) {
+  event.preventDefault();
+  if (presionado == 0) {
+    if (!tAT) { // Verifica si la acción ya está en curso
+      if(accion === 0){
+        tAT = true;
+        clearInterval(t2);
+        presionado = 6;
+        t2 = setInterval(sendCommand('ATRAS'), 100); // Ejecuta cada 100 ms
+        accion = 1;
+        setTimeout(deteccionclick, 1200);
+      }
+    }
+  }
+});
+
+/** 
+ * Evento de dejar de presionar el botón de manera táctil del movimiento hacia atras.
+ * @returns {void}
+*/
+at.addEventListener('touchend', function () {
+  if (presionado == 6) {
+    tAT = false;
+    clearInterval(t2);
+    presionado = 0;
+    t2 = setInterval(sendCommand('ALTO'), 100); // Ejecuta cada 100 ms
+  }
+});
+
+/** 
+ * Evento de presionar el botón de movimiento hacia atras.
+ * @returns {void}
+*/
+at.addEventListener('mousedown', function (event) {
+  event.preventDefault();
+  if (!tAT) { // Verifica si la acción ya está en curso
+    if (accion === 0){
+      tAT = true;
+      clearInterval(t2);
+      t2 = setInterval(sendCommand('ATRAS'), 100); // Ejecuta cada 100 ms
+      accion = 1;
+      setTimeout(deteccionclick, 1200);
+    }
+  }
+});
+
+/** 
+ * Evento de dejar de presionar el botón de movimiento hacia atras.
+ * @returns {void}
+*/
+at.addEventListener('mouseup', function () {
+  tAT = false;
+  clearInterval(t2);
+  t2 = setInterval(sendCommand('ALTO'), 100); // Ejecuta cada 100 ms
+});
+
+/** 
+ * Evento de presionar el botón de manera táctil del movimiento hacia la derecha.
+ * @returns {void}
+*/de.addEventListener('touchstart', function (event) {
+  event.preventDefault();
+  if (presionado == 0) {
+    if (!tD) { // Verifica si la acción ya está en curso
+      if (accion === 0){
+        tD = true;
+        clearInterval(t2);
+        presionado = 7;
+        t2 = setInterval(sendCommand('DERECHA'), 100); // Ejecuta cada 100 ms
+        accion = 1;
+        setTimeout(deteccionclick, 1200);
+      }
+    }
+  }
+});
+
+/** 
+ * Evento de dejar de presionar el botón de manera táctil del movimiento hacia la derecha.
+ * @returns {void}
+*/
+de.addEventListener('touchend', function () {
+  if (presionado == 7) {
+    tD = false;
+    clearInterval(t2);
+    presionado = 0;
+    t2 = setInterval(sendCommand('ALTO'), 100); // Ejecuta cada 100 ms
+  }
+});
+
+/** 
+ * Evento de presionar el botón de movimiento hacia la derecha.
+ * @returns {void}
+*/
+de.addEventListener('mousedown', function (event) {
+  event.preventDefault();
+  if (!tD) { // Verifica si la acción ya está en curso
+    if (accion === 0){
+      tD = true;
+      clearInterval(t2);
+      t2 = setInterval(sendCommand('DERECHA'), 100); // Ejecuta cada 100 ms
+      accion = 1;
+      setTimeout(deteccionclick, 1200);
+    }
+  }
+});
+
+/** 
+ * Evento de dejar de presionar el botón de movimiento hacia la derecha.
+ * @returns {void}
+*/
+de.addEventListener('mouseup', function () {
+  tD = false;
+  clearInterval(t2);
+  t2 = setInterval(sendCommand('ALTO'), 100); // Ejecuta cada 100 ms
+});
+
+/** 
+ * Evento de presionar el botón de manera táctil del movimiento hacia la izquierda.
+ * @returns {void}
+*/
+iz.addEventListener('touchstart', function (event) {
+  event.preventDefault();
+  if (presionado == 0) {
+    if (!tI) { // Verifica si la acción ya está en curso
+      if (accion === 0){
+        tI = true;
+        clearInterval(t2);
+        presionado = 8;
+        t2 = setInterval(sendCommand('IZQUIERDA'), 100); // Ejecuta cada 100 ms
+        accion = 1;
+        setTimeout(deteccionclick, 1200);
+      }
+    }
+  }
+});
+
+/** 
+ * Evento de dejar de presionar el botón de manera táctil del movimiento hacia la izquierda.
+ * @returns {void}
+*/
+iz.addEventListener('touchend', function () {
+  if (presionado == 8) {
+    tI = false;
+    clearInterval(t2);
+    presionado = 0;
+    t2 = setInterval(sendCommand('ALTO'), 100); // Ejecuta cada 100 ms
+  }
+});
+
+/** 
+ * Evento de presionar el botón de movimiento hacia la izquierda.
+ * @returns {void}
+*/
+iz.addEventListener('mousedown', function (event) {
+  event.preventDefault();
+  if (!tI) { // Verifica si la acción ya está en curso
+    if (accion === 0) {
+      tI = true;
+      clearInterval(t2);
+      t2 = setInterval(sendCommand('IZQUIERDA'), 100); // Ejecuta cada 100 ms
+      accion = 1;
+      setTimeout(deteccionclick, 1200);
+    }
+  }
+});
+
+/** 
+ * Evento de dejar de presionar el botón de movimiento hacia la izquierda.
+ * @returns {void}
+*/
+iz.addEventListener('mouseup', function () {
+  tI = false;
+  clearInterval(t2);
+  t2 = setInterval(sendCommand('ALTO'), 100); // Ejecuta cada 100 ms
+});
+
+/**
+ * Manda el cambio de velocidad por el tema speed.
+ * @returns {void}
+ */
+function changevel() {
+  if(inicio ===clave){
+    if (Sensores[3] === 0) {
+      //Dependiendo del selectbox.
+      let Velocida = document.getElementById("selvel");
+      let velocidad = Velocida.value;
+      message = new Paho.MQTT.Message(velocidad);
+      message.destinationName = "speed";
+      client.send(message);
+    }
+  }
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Tue Nov 21 2023 13:46:08 GMT-0600 (GMT-06:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>
